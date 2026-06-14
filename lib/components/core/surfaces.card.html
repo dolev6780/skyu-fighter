@@ -1,0 +1,82 @@
+<!-- @dsCard group="Components" viewport="700x600" name="Surfaces, Data & Pickups" subtitle="Panel · stat bars · progress · jet/world chips · power-ups · avatar · glass modal" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0">
+<style>
+  body { margin: 0; background: var(--af-bg); font-family: var(--af-font-ui); padding: 26px; color: var(--af-text); }
+  .sec { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--af-text-muted); margin: 0 0 12px; font-weight: 700; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="../../_ds_bundle.js"></script>
+  <script type="text/babel">
+    const { Panel, StatBar, ProgressBar, JetChip, WorldChip, WORLDS, PowerUpBadge, Avatar, GlassModal, Button } = window.AeroFighterDesignSystem_9520d9;
+    const STRIP = '../../assets/sprites/powerups_strip_128.png';
+    function Demo() {
+      return (
+        <div className="grid">
+          <div>
+            <p className="sec">Panel · Stat Bars</p>
+            <Panel accent="var(--af-border)">
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '2px', color: 'var(--af-skin-crimson)', marginBottom: 12 }}>CRIMSON PHOENIX</div>
+              <StatBar label="Engine Speed" value={0.9} color="var(--af-cyan)" />
+              <div style={{ height: 8 }} />
+              <StatBar label="Hull Integrity" value={0.4} color="var(--af-warning)" />
+              <div style={{ height: 8 }} />
+              <StatBar label="Firepower" value={0.7} color="#ff4444" />
+            </Panel>
+            <div style={{ height: 18 }} />
+            <p className="sec">Progress</p>
+            <ProgressBar value={0.62} color="var(--af-orange)" />
+            <div style={{ height: 8 }} />
+            <ProgressBar value={0.35} color="var(--af-cyan)" />
+          </div>
+          <div>
+            <p className="sec">Jet Chips · Avatar</p>
+            <div className="row">
+              <JetChip color="var(--af-skin-cobalt)" highlighted equipped />
+              <JetChip color="var(--af-skin-crimson)" />
+              <JetChip color="var(--af-skin-solar)" />
+              <JetChip color="var(--af-skin-emerald)" />
+              <Avatar initials="MV" />
+            </div>
+            <div style={{ height: 18 }} />
+            <p className="sec">Sector Chips</p>
+            <div className="row">
+              {WORLDS.map((w, i) => (
+                <WorldChip key={w.id} id={w.id} name={w.name} accent={w.accent} selected={i === 1} />
+              ))}
+            </div>
+            <div style={{ height: 18 }} />
+            <p className="sec">Power-Up Badges</p>
+            <div className="row">
+              <PowerUpBadge type="weaponUp" src={STRIP} />
+              <PowerUpBadge type="rapidFire" src={STRIP} />
+              <PowerUpBadge type="repair" src={STRIP} />
+              <PowerUpBadge type="armor" src={STRIP} />
+              <PowerUpBadge type="nuke" src={STRIP} />
+              <PowerUpBadge type="scoreStar" src={STRIP} />
+            </div>
+            <div style={{ height: 18 }} />
+            <p className="sec">Glass Modal</p>
+            <GlassModal accent="var(--af-danger)" glow scrim={false} width={240} style={{ padding: 18 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '3px', color: 'var(--af-danger)', textShadow: 'var(--af-text-glow-danger)', textAlign: 'center', marginBottom: 12 }}>GAME OVER</div>
+              <Button block variant="primary" size="sm">Re-launch</Button>
+            </GlassModal>
+          </div>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+  </script>
+</body>
+</html>
