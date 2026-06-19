@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "275148231198",
+    "project_id": "skyu-fighter",
+    "storage_bucket": "skyu-fighter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:275148231198:android:4504e762a0a3466a87140f",
+        "android_client_info": {
+          "package_name": "com.example.flutter_flame_game"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "275148231198-dssar534vpcip2llr4s9jph5ag57g770.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutter_flame_game",
+            "certificate_hash": "93e2e7804f5823406bebc26a3defa921150985ed"
+          }
+        },
+        {
+          "client_id": "275148231198-5ohrapdf0kc67tos1k3tkn51rrkhqkcv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwF8go97OeqjWMcTIO9mtPPU_sQky33AI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "275148231198-5ohrapdf0kc67tos1k3tkn51rrkhqkcv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "275148231198-5uji3f2t2o79sboh9skc3nbv0p24b3ct.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterFlameGame"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

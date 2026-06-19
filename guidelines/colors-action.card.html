@@ -1,0 +1,31 @@
+<!-- @dsCard group="Colors" viewport="700x180" name="Action Orange" subtitle="CTA / selected state — the SCRAMBLE gradient" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--af-bg); font-family: var(--af-font-ui);
+         padding: 24px; color: var(--af-text); }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: stretch; }
+  .sw { width: 124px; border-radius: var(--af-radius-md); overflow: hidden;
+        border: var(--af-stroke) solid var(--af-border); }
+  .chip { height: 64px; }
+  .meta { padding: 8px 10px; background: var(--af-surface); }
+  .name { font-size: 11px; letter-spacing: var(--af-track-wide); text-transform: uppercase;
+          color: var(--af-cyan-mid); font-weight: 600; }
+  .hex { font-family: var(--af-font-mono); font-size: 11px; color: var(--af-text-muted); margin-top: 2px; }
+  .grad { width: 160px; }
+  .grad .chip { background: var(--af-grad-action); box-shadow: var(--af-glow-orange); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="sw grad"><div class="chip"></div><div class="meta"><div class="name">Action Grad</div><div class="hex">#FF8800 → #FF4400</div></div></div>
+    <div class="sw"><div class="chip" style="background:#ff8800"></div><div class="meta"><div class="name">Orange</div><div class="hex">#FF8800</div></div></div>
+    <div class="sw"><div class="chip" style="background:#ff5500"></div><div class="meta"><div class="name">Deep</div><div class="hex">#FF5500</div></div></div>
+    <div class="sw"><div class="chip" style="background:#ff4400"></div><div class="meta"><div class="name">Hot</div><div class="hex">#FF4400</div></div></div>
+    <div class="sw"><div class="chip" style="background:#ff6600"></div><div class="meta"><div class="name">Amber</div><div class="hex">#FF6600</div></div></div>
+  </div>
+</body>
+</html>

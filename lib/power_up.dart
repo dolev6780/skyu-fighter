@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart' hide Image;
@@ -38,12 +37,19 @@ class PowerUp extends PositionComponent with HasGameReference<AeroFighterGame> {
   void update(double dt) {
     super.update(dt);
     _time += dt;
-    position.y += speed * dt;
-    // Add subtle horizontal sway
-    position.x += sin(_time * 4) * 0.6;
 
-    if (position.y > kGameHeight + 40) {
-      removeFromParent();
+    if (game.isHorizontalLevel) {
+      position.x -= speed * dt;
+      position.y += sin(_time * 4) * 0.6;
+      if (position.x < -40) {
+        removeFromParent();
+      }
+    } else {
+      position.y += speed * dt;
+      position.x += sin(_time * 4) * 0.6;
+      if (position.y > kGameHeight + 40) {
+        removeFromParent();
+      }
     }
   }
 
@@ -84,7 +90,7 @@ class PowerUp extends PositionComponent with HasGameReference<AeroFighterGame> {
       Offset.zero,
       (size.x / 2) * pulse,
       Paint()
-        ..color = themeColor.withOpacity(0.25)
+        ..color = themeColor.withValues(alpha: 0.25)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
 
@@ -110,7 +116,11 @@ class FloatingText extends PositionComponent {
   void update(double dt) {
     super.update(dt);
     _time += dt;
-    position.y -= 45 * dt; // drifts upwards
+    // Floating text should drift opposite to gravity/direction
+    // If horizontal mode (moving right), text drifts left (upwards visually)
+    // Actually in horizontal mode, standard "up" would be towards the top of screen.
+    // If camera doesn't rotate and everything just moves along X, text drifting "up" is still -Y.
+    position.y -= 45 * dt; 
     if (_time >= 1.2) {
       removeFromParent();
     }
@@ -123,11 +133,11 @@ class FloatingText extends PositionComponent {
       text: TextSpan(
         text: text,
         style: TextStyle(
-          color: color.withOpacity(opacity),
+          color: color.withValues(alpha: opacity),
           fontSize: 13,
           fontWeight: FontWeight.bold,
           shadows: [
-            Shadow(color: Colors.black.withOpacity(opacity), blurRadius: 4),
+            Shadow(color: Colors.black.withValues(alpha: opacity), blurRadius: 4),
           ],
         ),
       ),

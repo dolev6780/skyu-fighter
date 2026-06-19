@@ -1,0 +1,32 @@
+<!-- @dsCard group="Type" viewport="700x230" name="Display / HUD Titles" subtitle="Chakra Petch — uppercase, tracked, bold" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--af-bg); font-family: var(--af-font-display);
+         padding: 26px; color: var(--af-text); }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .line { display: flex; align-items: baseline; gap: 16px; }
+  .spec { font-family: var(--af-font-mono); font-size: 10px; color: var(--af-text-muted);
+          width: 150px; flex: 0 0 auto; letter-spacing: 0; }
+  .hero { font-size: var(--af-text-hero); font-weight: 700; letter-spacing: var(--af-track-widest);
+          color: var(--af-danger); text-shadow: var(--af-text-glow-danger); }
+  .display { font-size: var(--af-text-display); font-weight: 700; font-style: italic;
+             letter-spacing: var(--af-track-wide); color: var(--af-orange); }
+  .title { font-size: var(--af-text-title); font-weight: 700; letter-spacing: var(--af-track-wider);
+           color: var(--af-cyan); }
+  .h2 { font-size: var(--af-text-h2); font-weight: 700; letter-spacing: var(--af-track-wide);
+        color: var(--af-cyan); }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="line"><span class="spec">34 / 700 / 4px</span><span class="hero">GAME OVER</span></div>
+    <div class="line"><span class="spec">28 / 700 italic / 2px</span><span class="display">SCRAMBLE</span></div>
+    <div class="line"><span class="spec">22 / 700 / 3px</span><span class="title">MAVERICK</span></div>
+    <div class="line"><span class="spec">15 / 700 / 2px</span><span class="h2">JET CONFIGURATOR</span></div>
+  </div>
+</body>
+</html>

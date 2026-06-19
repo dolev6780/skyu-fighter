@@ -3,7 +3,19 @@
     "allow": [
       "Bash(flutter analyze *)",
       "Bash(flutter devices *)",
-      "Bash(flutter run *)"
+      "Bash(flutter run *)",
+      "Bash(mkdir -p \"c:/repos/skyu-fighter/design_system/assets/backgrounds\" \"c:/repos/skyu-fighter/design_system/assets/sprites\" \"c:/repos/skyu-fighter/design_system/components/core\" \"c:/repos/skyu-fighter/design_system/flutter_port/game\" \"c:/repos/skyu-fighter/design_system/guidelines\" \"c:/repos/skyu-fighter/design_system/skyu-fighter-patch/lib/theme\" \"c:/repos/skyu-fighter/design_system/templates/aerofighter-app\" \"c:/repos/skyu-fighter/design_system/tokens\" \"c:/repos/skyu-fighter/design_system/ui_kits/aerofighter-app\")",
+      "WebFetch(domain:api.anthropic.com)",
+      "PowerShell(cd c:\\\\repos\\\\skyu-fighter; flutter analyze 2>&1 | Where-Object { $_ -match \"error|warning\" -and $_ -notmatch \"info\" } | Select-Object -First 20)",
+      "PowerShell(cd c:\\\\repos\\\\skyu-fighter; $out = flutter analyze 2>&1; $out | Where-Object { $_ -notmatch \"^\\\\s+info\" } | Select-Object -First 30; Write-Host \"---\"; $out | Measure-Object | Select-Object -ExpandProperty Count)",
+      "Bash(cp \"c:/repos/skyu-fighter/design_handoff_aerofighter/assets/sprites/enemy_fighter_256.png\" \"c:/repos/skyu-fighter/assets/images/\")",
+      "Bash(cp \"c:/repos/skyu-fighter/design_handoff_aerofighter/assets/sprites/enemy_bomber_256.png\" \"c:/repos/skyu-fighter/assets/images/\")",
+      "Bash(cp \"c:/repos/skyu-fighter/design_handoff_aerofighter/assets/sprites/bullet_player_64.png\" \"c:/repos/skyu-fighter/assets/images/\")",
+      "Bash(cp \"c:/repos/skyu-fighter/design_handoff_aerofighter/assets/sprites/bullet_enemy_64.png\" \"c:/repos/skyu-fighter/assets/images/\")",
+      "Bash(cp \"c:/repos/skyu-fighter/design_handoff_aerofighter/assets/sprites/missile_player_128.png\" \"c:/repos/skyu-fighter/assets/images/\")"
+    ],
+    "additionalDirectories": [
+      "c:\\repos\\skyu-fighter\\design_system\\assets"
     ]
   }
 }

@@ -37,7 +37,7 @@ class AfButton extends StatelessWidget {
       case AfButtonVariant.secondary:
         fg = AF.cyan; border = Border.all(color: AF.cyanMid, width: AF.stroke); break;
       case AfButtonVariant.ghost:
-        fg = AF.cyan; bgColor = AF.cyanMid.withOpacity(0.08); break;
+        fg = AF.cyan; bgColor = AF.cyanMid.withValues(alpha: 0.08); break;
       case AfButtonVariant.danger:
         fg = AF.danger; border = Border.all(color: AF.danger, width: AF.stroke); break;
       case AfButtonVariant.success:
@@ -91,7 +91,7 @@ class AfPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: padding,
         decoration: BoxDecoration(
-          color: AF.surface.withOpacity(0.85),
+          color: AF.surface.withValues(alpha: 0.85),
           border: Border.all(color: accent ?? AF.border, width: AF.stroke),
           borderRadius: BorderRadius.circular(radius),
           boxShadow: glow && accent != null ? afGlow(accent!, opacity: 0.4) : afShadowPanel,
@@ -118,8 +118,8 @@ class AfGlassModal extends StatelessWidget {
             width: width,
             padding: const EdgeInsets.all(AF.s7),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.75),
-              border: Border.all(color: accent.withOpacity(0.4), width: AF.stroke),
+              color: Colors.black.withValues(alpha: 0.75),
+              border: Border.all(color: accent.withValues(alpha: 0.4), width: AF.stroke),
               borderRadius: BorderRadius.circular(AF.rModal),
               boxShadow: glow ? [...afShadowModal, ...afGlow(accent, blur: 30, opacity: 0.4)] : afShadowModal,
             ),
@@ -165,7 +165,7 @@ class AfProgressBar extends StatelessWidget {
   Widget build(BuildContext context) => ClipRRect(
         borderRadius: BorderRadius.circular(AF.rSm),
         child: Container(
-          height: height, color: Colors.black.withOpacity(0.45),
+          height: height, color: Colors.black.withValues(alpha: 0.45),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
             widthFactor: value.clamp(0, 1),
@@ -194,7 +194,7 @@ class AfWorldChip extends StatelessWidget {
           duration: AF.ease,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? accent.withOpacity(0.16) : Colors.black.withOpacity(0.25),
+            color: selected ? accent.withValues(alpha: 0.16) : Colors.black.withValues(alpha: 0.25),
             border: Border.all(
                 color: selected ? accent : AF.borderInactive, width: selected ? 2 : 1.2),
             borderRadius: BorderRadius.circular(AF.rMd),

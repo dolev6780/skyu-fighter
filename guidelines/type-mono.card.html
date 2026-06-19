@@ -1,0 +1,28 @@
+<!-- @dsCard group="Type" viewport="700x200" name="Telemetry / Mono" subtitle="Share Tech Mono — score, currency, level IDs" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--af-bg); font-family: var(--af-font-mono);
+         padding: 26px; color: var(--af-text); }
+  .stack { display: flex; flex-direction: column; gap: 14px; }
+  .line { display: flex; align-items: baseline; gap: 16px; }
+  .spec { font-family: var(--af-font-mono); font-size: 10px; color: var(--af-text-muted);
+          width: 150px; flex: 0 0 auto; }
+  .score { font-size: 22px; letter-spacing: 2px; color: var(--af-blue-soft); }
+  .best  { font-size: 18px; letter-spacing: 2px; color: var(--af-gold); }
+  .lvl   { font-size: 13px; letter-spacing: 1px; color: var(--af-world-dawn); }
+  .curr  { font-size: 16px; letter-spacing: 1px; color: var(--af-text); }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="line"><span class="spec">SCORE · 22px</span><span class="score">SCORE: 048250</span></div>
+    <div class="line"><span class="spec">BEST · 18px</span><span class="best">BEST: 112400</span></div>
+    <div class="line"><span class="spec">CURRENCY · 16px</span><span class="curr">¤ 25,400 &nbsp; ◆ 150</span></div>
+    <div class="line"><span class="spec">LEVEL ID · 13px</span><span class="lvl">LVL 2-3 &nbsp; 18 / 25</span></div>
+  </div>
+</body>
+</html>

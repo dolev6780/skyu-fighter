@@ -3,14 +3,19 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/flame.dart';
-import 'package:flame/text.dart';
 import 'package:flutter/material.dart' hide Image;
+import 'package:flutter/scheduler.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'player.dart';
 import 'enemy.dart';
 import 'bullet.dart';
 import 'explosion.dart';
 import 'power_up.dart';
 import 'start_menu.dart';
+import 'game_overlays.dart';
+import 'theme/af_tokens.dart';
+import 'theme/af_text_styles.dart';
 
 double kGameWidth = 400;
 double kGameHeight = 700;
@@ -96,8 +101,8 @@ class LevelData {
   bool get isHorizontal => level == 3;
 
   int get killTarget {
-    const base = [15, 20, 15, 25];
-    return base[level - 1] + (world - 1) * 5;
+    const base = [30, 40, 35, 50];
+    return base[level - 1] + (world - 1) * 10;
   }
 
   Color get worldColor {
@@ -118,6 +123,13 @@ class LevelData {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
+  }
   final physicalSize = PlatformDispatcher.instance.views.first.physicalSize;
   kGameHeight = kGameWidth * (physicalSize.height / physicalSize.width);
   WidgetsFlutterBinding.ensureInitialized();
@@ -139,12 +151,12 @@ class AeroFighterApp extends StatelessWidget {
           game: AeroFighterGame(),
           overlayBuilderMap: {
             'StartMenu': (context, game) => StartMenuOverlay(game: game),
-            'Controls': (context, game) => _ControlsOverlay(game: game),
-            'GameOver': (context, game) => _GameOverOverlay(game: game),
+            'Controls': (context, game) => ControlsOverlay(game: game),
+            'GameOver': (context, game) => GameOverOverlay(game: game),
             'LevelComplete': (context, game) =>
-                _LevelCompleteOverlay(game: game),
-            'PauseMenu': (context, game) => _PauseMenuOverlay(game: game),
-            'PauseButton': (context, game) => _PauseButtonOverlay(game: game),
+                LevelCompleteOverlay(game: game),
+            'PauseMenu': (context, game) => PauseMenuOverlay(game: game),
+            'HUD': (context, game) => _HUDOverlay(game: game),
           },
           initialActiveOverlays: const ['StartMenu'],
         ),
@@ -168,6 +180,8 @@ class AeroFighterGame extends FlameGame {
   late Player player;
   int score = 0;
   int lives = 3;
+  int health = 3;
+  int maxHealth = 3;
   bool gameOver = false;
   bool gameStarted = false;
 
@@ -179,6 +193,7 @@ class AeroFighterGame extends FlameGame {
   int currentWorld = 1;
   int currentLevel = 1;
   int _levelKillCount = 0;
+  int _itemsDroppedThisLevel = 0;
   bool levelComplete = false;
   final Set<String> unlockedLevels = {'1-1'};
   final Set<String> completedLevels = {};
@@ -248,6 +263,14 @@ class AeroFighterGame extends FlameGame {
       'bg_afternoon_720x1280.png',
       'bg_night_720x1280.png',
       'powerups_strip_128.png',
+      'enemy_fighter_256.png',
+      'enemy_bomber_256.png',
+      'bullet_player_64.png',
+      'bullet_enemy_64.png',
+      'missile_player_128.png',
+      'enemy_fighter_side_512.png',
+      'enemy_bomber_side_512.png',
+      'jet_hero_side_512.png',
     ]);
 
     // Show world from (0,0) to (kGameWidth, kGameHeight) in screen space
@@ -258,7 +281,7 @@ class AeroFighterGame extends FlameGame {
     // Initialize player but don't add to the world yet
     player = Player(position: Vector2(kGameWidth / 2, kGameHeight - 110));
 
-    camera.viewport.add(HudComponent());
+    // HUD now handled by _HUDOverlay widget
   }
 
   @override
@@ -317,7 +340,9 @@ class AeroFighterGame extends FlameGame {
     if (score > highScore) highScore = score;
     overlays.remove('Controls');
     overlays.remove('PauseButton');
+    overlays.remove('HUD');
     overlays.add('LevelComplete');
+    paused = true;
   }
 
   void _spawnWave() {
@@ -372,7 +397,7 @@ class AeroFighterGame extends FlameGame {
       for (final enemy in enemies) {
         if (_overlaps(bullet, enemy)) {
           bullet.removeFromParent();
-          enemy.takeDamage(1);
+          enemy.takeDamage(34);
           if (enemy.isDead) {
             _comboCount++;
             _comboTimer = _comboWindow;
@@ -395,7 +420,8 @@ class AeroFighterGame extends FlameGame {
             // Spawn power-up drop
             final isBomber = enemy is BomberEnemy;
             final dropRate = isBomber ? 1.0 : 0.12;
-            if (_rng.nextDouble() < dropRate) {
+            if (_rng.nextDouble() < dropRate && _itemsDroppedThisLevel < 5) {
+              _itemsDroppedThisLevel++;
               final roll = _rng.nextDouble();
               PowerUpType type;
               if (roll < 0.15) {
@@ -445,7 +471,7 @@ class AeroFighterGame extends FlameGame {
     if (player.isMounted && !gameOver) {
       final powerUps = world.children.whereType<PowerUp>().toList();
       for (final powerUp in powerUps) {
-        if (_overlaps(powerUp, player)) {
+        if (_overlaps(powerUp, player, s: 0.0)) {
           powerUp.removeFromParent();
           _collectPowerUp(powerUp.type);
         }
@@ -463,29 +489,31 @@ class AeroFighterGame extends FlameGame {
         color = const Color(0xFFFF8800);
         break;
       case PowerUpType.rapidFire:
-        player.rapidFireTimer = 8.0;
+        player.rapidFireTimer = 1.0;
         text = 'RAPID FIRE';
         color = const Color(0xFFFFFF33);
         break;
       case PowerUpType.missiles:
-        player.missileTimer = 8.0;
+        player.missileTimer = 30.0;
         text = 'MISSILES ACTIVE';
         color = const Color(0xFFFF3333);
         break;
       case PowerUpType.repair:
-        final maxStartingLives = difficulty == GameDifficulty.easy
-            ? 4
-            : (difficulty == GameDifficulty.hard ? 2 : 3);
-        if (lives < maxStartingLives) {
-          lives++;
-          text = 'SYSTEM REPAIRED';
+        if (health < maxHealth) {
+          health = maxHealth;
+          text = 'HP RESTORED';
         } else {
-          text = 'SYSTEMS NOMINAL';
+          if (lives < 5) {
+            lives++;
+            text = 'SYSTEM REPAIRED';
+          } else {
+            text = 'SYSTEMS NOMINAL';
+          }
         }
         color = const Color(0xFF33FF33);
         break;
       case PowerUpType.extraLife:
-        if (lives < 6) {
+        if (lives < 5) {
           lives++;
           text = 'EXTRA LIFE';
         } else {
@@ -494,7 +522,7 @@ class AeroFighterGame extends FlameGame {
         color = const Color(0xFFFFFFFF);
         break;
       case PowerUpType.armor:
-        player.shieldTimer = 8.0;
+        player.shieldTimer = 1.0;
         text = 'ARMOR CHARGED';
         color = const Color(0xFF3388FF);
         break;
@@ -528,8 +556,8 @@ class AeroFighterGame extends FlameGame {
     }
   }
 
-  bool _overlaps(PositionComponent a, PositionComponent b) {
-    const s = 0.3; // shrink factor — smaller hitbox feels fairer
+  bool _overlaps(PositionComponent a, PositionComponent b, {double s = 0.1}) {
+    // s is the shrink factor — smaller hitbox feels fairer. For powerups, use a negative s.
     final ax = a.position.x - a.size.x * (0.5 - s);
     final ay = a.position.y - a.size.y * (0.5 - s);
     final aw = a.size.x * (1 - s * 2);
@@ -545,7 +573,7 @@ class AeroFighterGame extends FlameGame {
     _shakeTimer = _shakeDuration;
     if (player.hasShield) {
       player.shieldTimer = 0.0;
-      player.triggerInvincibility();
+      player.triggerHitFlash();
       world.add(
         FloatingText(
           position: player.position.clone(),
@@ -555,15 +583,26 @@ class AeroFighterGame extends FlameGame {
       );
       return;
     }
+
+    health--;
+    if (health > 0) {
+      player.triggerHitFlash();
+      spawnExplosion(player.position, 40);
+      return;
+    }
+
+    // Explode when taking a hit
+    health = maxHealth;
+    spawnExplosion(player.position, 80);
     player.triggerInvincibility();
     lives--;
+
     if (lives <= 0) {
       lives = 0;
       gameOver = true;
       if (score > highScore) {
         highScore = score;
       }
-      spawnExplosion(player.position, 80);
       player.removeFromParent();
       overlays.remove('Controls');
       overlays.remove('PauseButton');
@@ -574,6 +613,17 @@ class AeroFighterGame extends FlameGame {
           overlays.add('GameOver');
         }
       });
+    } else {
+      // Respawn position after explosion
+      player.position = isHorizontalLevel
+          ? Vector2(80, kGameHeight / 2)
+          : Vector2(kGameWidth / 2, kGameHeight - 110);
+
+      // Reset power-ups on explosion
+      player.weaponLevel = 1;
+      player.rapidFireTimer = 0;
+      player.missileTimer = 0;
+      player.shieldTimer = 0;
     }
   }
 
@@ -611,10 +661,12 @@ class AeroFighterGame extends FlameGame {
     gameStarted = true;
     gameOver = false;
     levelComplete = false;
+    paused = false;
     _spawnTimer = 0;
     _totalTime = 0;
     _killCount = 0;
     _levelKillCount = 0;
+    _itemsDroppedThisLevel = 0;
     _comboCount = 0;
     _comboTimer = 0;
     _shakeTimer = 0;
@@ -625,8 +677,22 @@ class AeroFighterGame extends FlameGame {
       score = 0;
       lives = _startingLives;
     }
+    maxHealth = 3;
+    health = maxHealth;
 
     _clearWorldEntities();
+
+    int oldWeaponLevel = 1;
+    double oldRapidFire = 0.0;
+    double oldMissile = 0.0;
+    double oldShield = 0.0;
+
+    if (!freshStart && player.isMounted) {
+      oldWeaponLevel = player.weaponLevel;
+      oldRapidFire = player.rapidFireTimer;
+      oldMissile = player.missileTimer;
+      oldShield = player.shieldTimer;
+    }
 
     if (player.isMounted) player.removeFromParent();
     player = Player(
@@ -634,6 +700,14 @@ class AeroFighterGame extends FlameGame {
           ? Vector2(80, kGameHeight / 2)
           : Vector2(kGameWidth / 2, kGameHeight - 110),
     );
+
+    if (!freshStart) {
+      player.weaponLevel = oldWeaponLevel;
+      player.rapidFireTimer = oldRapidFire;
+      player.missileTimer = oldMissile;
+      player.shieldTimer = oldShield;
+    }
+
     world.add(player);
 
     overlays.remove('StartMenu');
@@ -641,7 +715,7 @@ class AeroFighterGame extends FlameGame {
     overlays.remove('LevelComplete');
     overlays.remove('PauseMenu');
     overlays.add('Controls');
-    overlays.add('PauseButton');
+    overlays.add('HUD');
   }
 
   void restart() {
@@ -650,16 +724,21 @@ class AeroFighterGame extends FlameGame {
   }
 
   void _clearWorldEntities() {
-    for (final e in world.children.whereType<Enemy>().toList())
+    for (final e in world.children.whereType<Enemy>().toList()) {
       e.removeFromParent();
-    for (final b in world.children.whereType<Bullet>().toList())
+    }
+    for (final b in world.children.whereType<Bullet>().toList()) {
       b.removeFromParent();
-    for (final e in world.children.whereType<Explosion>().toList())
+    }
+    for (final e in world.children.whereType<Explosion>().toList()) {
       e.removeFromParent();
-    for (final p in world.children.whereType<PowerUp>().toList())
+    }
+    for (final p in world.children.whereType<PowerUp>().toList()) {
       p.removeFromParent();
-    for (final t in world.children.whereType<FloatingText>().toList())
+    }
+    for (final t in world.children.whereType<FloatingText>().toList()) {
       t.removeFromParent();
+    }
   }
 
   void exitToMainMenu() {
@@ -690,7 +769,7 @@ class AeroFighterGame extends FlameGame {
     if (player.isMounted) player.removeFromParent();
 
     overlays.remove('Controls');
-    overlays.remove('PauseButton');
+    overlays.remove('HUD');
     overlays.remove('GameOver');
     overlays.remove('LevelComplete');
     overlays.remove('PauseMenu');
@@ -732,6 +811,13 @@ class OceanBackground extends PositionComponent
         );
         y += scaledH;
       }
+      _drawClouds(
+        canvas,
+        _scroll * 1.5,
+        kGameWidth,
+        kGameHeight,
+        isHorizontal: false,
+      );
     }
   }
 
@@ -793,6 +879,71 @@ class OceanBackground extends PositionComponent
       Rect.fromLTWH(0, groundY + 4, kGameWidth, kGameHeight - groundY),
       Paint()..color = const Color(0xFF1A1F10),
     );
+
+    _drawClouds(
+      canvas,
+      _scroll * 1.5,
+      kGameWidth,
+      kGameHeight,
+      isHorizontal: true,
+    );
+  }
+
+  void _drawClouds(
+    Canvas canvas,
+    double scroll,
+    double w,
+    double h, {
+    required bool isHorizontal,
+  }) {
+    final paint = Paint()
+      ..color = const Color(0x33FFFFFF)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
+
+    const spacing = 150.0;
+    final firstIdx = (scroll / spacing).floor() - 1;
+    final lastIdx = ((scroll + (isHorizontal ? w : h)) / spacing).ceil() + 1;
+
+    for (int i = firstIdx; i <= lastIdx; i++) {
+      final rnd1 = (i.abs() * 17 + 5) % 100 / 100.0;
+      final rnd2 = (i.abs() * 23 + 11) % 100 / 100.0;
+      final offset = ((i.abs() * 31 + 7) % 60 - 30).toDouble();
+
+      final cw = 80.0 + rnd1 * 80.0;
+      final ch = 40.0 + rnd2 * 40.0;
+
+      if (isHorizontal) {
+        final cx = i * spacing + offset - scroll;
+        final cy = 40.0 + rnd1 * 100.0;
+        canvas.drawOval(
+          Rect.fromCenter(center: Offset(cx, cy), width: cw, height: ch),
+          paint,
+        );
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(cx + cw * 0.3, cy - ch * 0.2),
+            width: cw * 0.7,
+            height: ch * 0.8,
+          ),
+          paint,
+        );
+      } else {
+        final cy = i * spacing + offset - scroll;
+        final cx = 40.0 + rnd1 * (w - 80);
+        canvas.drawOval(
+          Rect.fromCenter(center: Offset(cx, cy), width: cw, height: ch),
+          paint,
+        );
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(cx + cw * 0.3, cy - ch * 0.2),
+            width: cw * 0.7,
+            height: ch * 0.8,
+          ),
+          paint,
+        );
+      }
+    }
   }
 
   void _drawMountains(Canvas canvas, double scroll) {
@@ -860,637 +1011,271 @@ class OceanBackground extends PositionComponent
 
 // ─── HUD ──────────────────────────────────────────────────────────────────────
 
-class HudComponent extends Component with HasGameReference<AeroFighterGame> {
-  late TextComponent _scoreText;
-  late TextComponent _livesText;
-  late TextComponent _weaponText;
+class _HUDOverlay extends StatefulWidget {
+  final AeroFighterGame game;
+  const _HUDOverlay({required this.game});
 
   @override
-  Future<void> onLoad() async {
-    final bold = TextStyle(
-      color: const Color(0xFFFFFFFF),
-      fontSize: 18,
-      fontWeight: FontWeight.bold,
-      shadows: const [Shadow(color: Color(0xFF000033), blurRadius: 6)],
-    );
-    _scoreText = TextComponent(
-      text: 'SCORE: 000000',
-      textRenderer: TextPaint(style: bold),
-      position: Vector2(12, 12),
-    );
-    _livesText = TextComponent(
-      text: 'LIVES: 3',
-      textRenderer: TextPaint(style: bold.copyWith(fontSize: 15)),
-      position: Vector2(12, 34),
-    );
-    _weaponText = TextComponent(
-      text: '',
-      textRenderer: TextPaint(
-        style: bold.copyWith(fontSize: 12, color: const Color(0xFFFF8800)),
-      ),
-      position: Vector2(12, 54),
-    );
-    add(_scoreText);
-    add(_livesText);
-    add(_weaponText);
+  _HUDOverlayState createState() => _HUDOverlayState();
+}
+
+class _HUDOverlayState extends State<_HUDOverlay>
+    with SingleTickerProviderStateMixin {
+  late Ticker _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker((_) {
+      setState(() {});
+    });
+    _ticker.start();
   }
 
   @override
-  void update(double dt) {
-    _scoreText.text = 'SCORE: ${game.score.toString().padLeft(6, '0')}';
-    _livesText.text = 'LIVES: ${game.lives}';
-    if (game.gameStarted && game.player.isMounted) {
-      _weaponText.text = 'WPN  LV${game.player.weaponLevel}';
-    } else {
-      _weaponText.text = '';
-    }
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
   }
 
   @override
-  void render(Canvas canvas) {
-    if (!game.gameStarted || !game.player.isMounted) return;
-    _renderLevelProgress(canvas);
-    _renderPowerUpBars(canvas, game.player);
-    _renderCombo(canvas);
-  }
+  Widget build(BuildContext context) {
+    if (!widget.game.gameStarted || !widget.game.player.isMounted)
+      return const SizedBox.shrink();
 
-  void _renderLevelProgress(Canvas canvas) {
-    final ld = game.currentLevelData;
-    final kills = game.levelKillCount;
+    final ld = widget.game.currentLevelData;
+    final kills = widget.game.levelKillCount;
     final target = ld.killTarget;
     final progress = (kills / target).clamp(0.0, 1.0);
+    final accent = ld.worldColor;
 
-    // Level label top-right (below combo area)
-    final labelPainter = TextPainter(
-      text: TextSpan(
-        text: 'LVL ${ld.id}',
-        style: TextStyle(
-          color: ld.worldColor,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          shadows: const [Shadow(color: Color(0xFF000000), blurRadius: 4)],
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    labelPainter.paint(
-      canvas,
-      Offset(kGameWidth - labelPainter.width - 12, 34),
-    );
-
-    // Kill progress bar below the label
-    const barW = 80.0;
-    const barH = 4.0;
-    final barX = kGameWidth - barW - 12;
-    const barY = 50.0;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(barX, barY, barW, barH),
-        const Radius.circular(2),
-      ),
-      Paint()..color = const Color(0x33FFFFFF),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(barX, barY, barW * progress, barH),
-        const Radius.circular(2),
-      ),
-      Paint()..color = ld.worldColor,
-    );
-
-    // Kill count text
-    final killPainter = TextPainter(
-      text: TextSpan(
-        text: '$kills / $target',
-        style: const TextStyle(
-          color: Colors.white54,
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    killPainter.paint(canvas, Offset(kGameWidth - killPainter.width - 12, 57));
-  }
-
-  void _renderPowerUpBars(Canvas canvas, Player player) {
-    const double barW = 80;
-    const double barH = 4;
-    const double x = 12;
-    const double maxTime = 8.0;
-    double y = 690;
-
-    void drawBar(double val, Color color) {
-      if (val <= 0) return;
-      y -= 8;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(x, y, barW, barH),
-          const Radius.circular(2),
-        ),
-        Paint()..color = const Color(0x33FFFFFF),
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(x, y, barW * (val / maxTime).clamp(0.0, 1.0), barH),
-          const Radius.circular(2),
-        ),
-        Paint()..color = color,
-      );
-    }
-
-    drawBar(player.shieldTimer, const Color(0xFF4499FF));
-    drawBar(player.rapidFireTimer, const Color(0xFFFFEE33));
-    drawBar(player.missileTimer, const Color(0xFFFF5544));
-  }
-
-  void _renderCombo(Canvas canvas) {
-    final mult = game.comboMultiplier;
-    if (mult <= 1) return;
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: 'x$mult COMBO',
-        style: TextStyle(
-          color: mult >= 3 ? const Color(0xFFFF5500) : const Color(0xFFFFDD00),
-          fontSize: mult >= 3 ? 18 : 15,
-          fontWeight: FontWeight.bold,
-          shadows: const [Shadow(color: Color(0xFF000000), blurRadius: 6)],
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    textPainter.paint(canvas, Offset(kGameWidth - textPainter.width - 12, 12));
-  }
-}
-
-// ─── Overlays ─────────────────────────────────────────────────────────────────
-
-class _ControlsOverlay extends StatelessWidget {
-  final AeroFighterGame game;
-  const _ControlsOverlay({required this.game});
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final sw = constraints.maxWidth;
-        final sh = constraints.maxHeight;
-        final gameAspect = kGameWidth / kGameHeight;
-        final screenAspect = sw / sh;
-        final scale = screenAspect < gameAspect
-            ? kGameWidth / sw
-            : kGameHeight / sh;
-
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onPanUpdate: (d) {
-            if (!game.gameOver && !game.paused) {
-              game.player.moveBy(
-                Vector2(d.delta.dx * scale, d.delta.dy * scale),
-              );
-            }
-          },
-          child: const ColoredBox(
-            color: Colors.transparent,
-            child: SizedBox.expand(),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _GameOverOverlay extends StatelessWidget {
-  final AeroFighterGame game;
-  const _GameOverOverlay({required this.game});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: 360,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+    return SafeArea(
+      child: Stack(
+        children: [
+          // Top Edge Accent Line
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
+              height: 3,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.75),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: const Color(0xFFFF3333).withOpacity(0.4),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFF0000).withOpacity(0.15),
-                    blurRadius: 24,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'GAME OVER',
-                    style: TextStyle(
-                      color: Color(0xFFFF3333),
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
-                      shadows: [
-                        Shadow(color: Color(0xFFFF0000), blurRadius: 16),
-                        Shadow(color: Color(0xFFFF4444), blurRadius: 8),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(color: Color(0xFF331111)),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'FINAL SCORE:',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                      Text(
-                        game.score.toString().padLeft(6, '0'),
-                        style: const TextStyle(
-                          color: Color(0xFF88CCFF),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'PERSONAL BEST:',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                      Text(
-                        game.highScore.toString().padLeft(6, '0'),
-                        style: const TextStyle(
-                          color: Color(0xFFFFCC00),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF3333),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 8,
-                      shadowColor: const Color(0xFFFF3333),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                    onPressed: game.restart,
-                    child: const Text('RE-LAUNCH MISSION'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white54),
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                    onPressed: game.exitToMainMenu,
-                    child: const Text('ABORT TO MENU'),
-                  ),
-                ],
+                color: accent,
+                boxShadow: afGlow(accent, blur: 12),
               ),
             ),
           ),
-        ),
+
+          // Top Left: Score & Lives
+          Positioned(
+            top: 14,
+            left: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'SCORE: ${afPadScore(widget.game.score)}',
+                  style: AFType.score.copyWith(shadows: [afTextShadowHud]),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: List.generate(
+                    widget.game.lives,
+                    (index) => const Padding(
+                      padding: EdgeInsets.only(right: 4.0),
+                      child: Icon(
+                        Icons.favorite,
+                        color: AF.danger,
+                        size: 18,
+                        shadows: [afTextShadowHud],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Text(
+                      'HP ',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        shadows: [afTextShadowHud],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 60,
+                      height: 6,
+                      child: LinearProgressIndicator(
+                        value: widget.game.health / widget.game.maxHealth,
+                        backgroundColor: Colors.white24,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF00FF00),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Top Right: Pause Button & Level
+          Positioned(
+            top: 14,
+            right: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    widget.game.paused = true;
+                    widget.game.overlays.add('PauseMenu');
+                    widget.game.overlays.remove('Controls');
+                    widget.game.overlays.remove('HUD');
+                  },
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AF.surface.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(AF.rSm),
+                      border: Border.all(
+                        color: AF.cyan.withValues(alpha: 0.5),
+                        width: AF.stroke,
+                      ),
+                    ),
+                    child: const Icon(Icons.pause, color: AF.cyan, size: 24),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'LVL ${ld.id}',
+                  style: AFType.levelId.copyWith(
+                    color: accent,
+                    shadows: [afTextShadowHud],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Combo Pop
+          if (widget.game.comboMultiplier >= 2)
+            Positioned(
+              top: 96,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Text(
+                  'x${widget.game.comboMultiplier} COMBO',
+                  style: AFType.display.copyWith(
+                    color: AF.orange,
+                    shadows: afGlow(AF.orangeDeep, blur: 10),
+                  ),
+                ),
+              ),
+            ),
+
+          // PowerUps (Bottom Left area, above progress)
+          Positioned(
+            bottom: 64,
+            left: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.game.player.rapidFireTimer > 0)
+                  _buildPowerUpIcon('RAPID FIRE', AF.warning),
+                if (widget.game.player.shieldTimer > 0)
+                  _buildPowerUpIcon('SHIELD', AF.shield),
+                if (widget.game.player.missileTimer > 0)
+                  _buildPowerUpIcon(
+                    'MISSILES (${widget.game.player.missileTimer.ceil()}s)',
+                    AF.dangerHot,
+                  ),
+              ],
+            ),
+          ),
+
+          // Kill Progress (Bottom)
+          Positioned(
+            bottom: 26,
+            left: 16,
+            right: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'SECTOR CLEAR',
+                      style: TextStyle(
+                        fontSize: 9,
+                        color: Colors.white54,
+                        letterSpacing: 1,
+                        shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                      ),
+                    ),
+                    Text(
+                      '${kills.toInt()} / ${target.toInt()}',
+                      style: const TextStyle(
+                        fontFamily: 'Share Tech Mono',
+                        fontSize: 9,
+                        color: Colors.white54,
+                        shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SizedBox(
+                    height: 6,
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Colors.white10,
+                      valueColor: AlwaysStoppedAnimation<Color>(accent),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
-}
 
-// ─── Level Complete Overlay ───────────────────────────────────────────────────
-
-class _LevelCompleteOverlay extends StatelessWidget {
-  final AeroFighterGame game;
-  const _LevelCompleteOverlay({required this.game});
-
-  @override
-  Widget build(BuildContext context) {
-    final ld = game.currentLevelData;
-    final isLastLevel = ld.world == 4 && ld.level == 4;
-    final nextLevelId = ld.level < 4
-        ? '${ld.world}-${ld.level + 1}'
-        : ld.world < 4
-        ? '${ld.world + 1}-1'
-        : null;
-
-    return Center(
-      child: SizedBox(
-        width: 360,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.80),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: ld.worldColor.withOpacity(0.5),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: ld.worldColor.withOpacity(0.15),
-                    blurRadius: 28,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    isLastLevel ? 'CAMPAIGN COMPLETE' : 'MISSION COMPLETE',
-                    style: TextStyle(
-                      color: ld.worldColor,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 3,
-                      shadows: [Shadow(color: ld.worldColor, blurRadius: 16)],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'LEVEL ${ld.id}  —  ${ld.worldName}',
-                    style: const TextStyle(
-                      color: Colors.white54,
-                      fontSize: 12,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(color: Color(0xFF002244)),
-                  const SizedBox(height: 14),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'SCORE:',
-                        style: TextStyle(
-                          color: Colors.white54,
-                          fontSize: 13,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                      Text(
-                        game.score.toString().padLeft(6, '0'),
-                        style: const TextStyle(
-                          color: Color(0xFF88CCFF),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                  if (!isLastLevel && nextLevelId != null)
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ld.worldColor,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 8,
-                        textStyle: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      onPressed: () {
-                        final parts = nextLevelId.split('-');
-                        game.startLevel(
-                          int.parse(parts[0]),
-                          int.parse(parts[1]),
-                          freshStart: false,
-                        );
-                      },
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.arrow_forward),
-                          SizedBox(width: 8),
-                          Text('NEXT MISSION'),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white38),
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                    onPressed: game.exitToMainMenu,
-                    child: const Text('RETURN TO BASE'),
-                  ),
-                ],
-              ),
+  Widget _buildPowerUpIcon(String label, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: color, blurRadius: 4)],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PauseMenuOverlay extends StatelessWidget {
-  final AeroFighterGame game;
-  const _PauseMenuOverlay({required this.game});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: 320,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.75),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: const Color(0xFF00AAFF).withOpacity(0.4),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF0088FF).withOpacity(0.15),
-                    blurRadius: 24,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'SYSTEM PAUSED',
-                    style: TextStyle(
-                      color: Color(0xFF00EEFF),
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 3,
-                      shadows: [
-                        Shadow(color: Color(0xFF0066FF), blurRadius: 16),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(color: Color(0xFF002244)),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0088FF),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    onPressed: () {
-                      game.paused = false;
-                      game.overlays.remove('PauseMenu');
-                      game.overlays.add('Controls');
-                      game.overlays.add('PauseButton');
-                    },
-                    child: const Text('RESUME MISSION'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFFF3333),
-                      side: const BorderSide(color: Color(0xFFFF3333)),
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    onPressed: game.exitToMainMenu,
-                    child: const Text('ABORT TO MENU'),
-                  ),
-                ],
-              ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: color,
+              fontWeight: FontWeight.bold,
+              shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PauseButtonOverlay extends StatelessWidget {
-  final AeroFighterGame game;
-  const _PauseButtonOverlay({required this.game});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.topRight,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 12.0, right: 12.0),
-          child: GestureDetector(
-            onTap: () {
-              game.paused = true;
-              game.overlays.add('PauseMenu');
-              game.overlays.remove('Controls');
-              game.overlays.remove('PauseButton');
-            },
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.65),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFF00AAFF).withOpacity(0.45),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF0088FF).withOpacity(0.25),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.pause,
-                color: Color(0xFF00EEFF),
-                size: 20,
-              ),
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }

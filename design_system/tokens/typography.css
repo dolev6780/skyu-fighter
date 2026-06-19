@@ -1,0 +1,46 @@
+/* ─── AeroFighter · Typography Tokens ───────────────────────────────────────
+   Tactical HUD type. Everything structural is UPPERCASE with generous
+   letterspacing; numeric telemetry is monospaced. Mirrors the game's
+   bold, wide, all-caps labelling (lib/start_menu.dart, main.dart). */
+
+:root {
+  /* ── Families ── */
+  --af-font-display: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif; /* titles, HUD chrome */
+  --af-font-ui: 'Chakra Petch', system-ui, sans-serif;                  /* labels, body, buttons */
+  --af-font-mono: 'Share Tech Mono', 'Courier New', monospace;          /* score, currency, coords */
+
+  /* ── Type scale (px) ── */
+  --af-text-hero: 34px;    /* GAME OVER / hero modal title */
+  --af-text-display: 28px; /* SCRAMBLE / SYSTEM PAUSED */
+  --af-text-title: 22px;   /* callsign, section hero */
+  --af-text-h1: 18px;      /* panel heading, score value */
+  --af-text-h2: 15px;      /* sub-heading, configurator title */
+  --af-text-body: 13px;    /* descriptive copy */
+  --af-text-label: 11px;   /* field labels, nav labels */
+  --af-text-caption: 10px; /* captions, fine print */
+  --af-text-micro: 9px;    /* counters, kill targets */
+
+  /* ── Weights ── */
+  --af-weight-regular: 400;
+  --af-weight-medium: 500;
+  --af-weight-semibold: 600;
+  --af-weight-bold: 700;
+
+  /* ── Letterspacing (tactical wideness) ── */
+  --af-track-tight: 0.5px;
+  --af-track-normal: 1px;
+  --af-track-wide: 2px;    /* labels, nav */
+  --af-track-wider: 3px;   /* titles */
+  --af-track-widest: 4px;  /* hero / GAME OVER */
+
+  /* ── Line heights ── */
+  --af-leading-tight: 1.1;
+  --af-leading-snug: 1.25;
+  --af-leading-normal: 1.4;
+  --af-leading-relaxed: 1.55;
+
+  /* ── Semantic aliases ── */
+  --font-display: var(--af-font-display);
+  --font-body: var(--af-font-ui);
+  --font-mono: var(--af-font-mono);
+}

@@ -1,0 +1,29 @@
+<!-- @dsCard group="Type" viewport="700x230" name="Labels & Body" subtitle="Chakra Petch — labels uppercase, copy sentence case" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--af-bg); font-family: var(--af-font-ui);
+         padding: 26px; color: var(--af-text); }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .line { display: flex; align-items: baseline; gap: 16px; }
+  .spec { font-family: var(--af-font-mono); font-size: 10px; color: var(--af-text-muted);
+          width: 150px; flex: 0 0 auto; }
+  .label { font-size: var(--af-text-label); font-weight: 700; letter-spacing: var(--af-track-wide);
+           text-transform: uppercase; color: var(--af-cyan-mid); }
+  .caption { font-size: var(--af-text-caption); font-weight: 600; letter-spacing: var(--af-track-normal);
+             text-transform: uppercase; color: var(--af-text-muted); }
+  .body { font-size: var(--af-text-body); font-weight: 400; line-height: var(--af-leading-normal);
+          color: var(--af-text-dim); max-width: 460px; }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="line"><span class="spec">11 / 700 / 2px · caps</span><span class="label">FUEL SYSTEM</span></div>
+    <div class="line"><span class="spec">10 / 600 / 1px · caps</span><span class="caption">85% OPTIMAL</span></div>
+    <div class="line"><span class="spec">13 / 400 / 1.4 lh</span><span class="body">Standard multi-role tactical interceptor. Perfectly balanced design for any sortie.</span></div>
+  </div>
+</body>
+</html>

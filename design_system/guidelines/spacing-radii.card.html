@@ -1,0 +1,28 @@
+<!-- @dsCard group="Spacing" viewport="700x200" name="Radii" subtitle="Controls 8–12 · modals 24 · pills 32 · full" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--af-bg); font-family: var(--af-font-ui);
+         padding: 26px; color: var(--af-text); }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; }
+  .item { text-align: center; }
+  .box { width: 80px; height: 70px; background: var(--af-surface);
+         border: var(--af-stroke) solid var(--af-cyan-mid); }
+  .n { font-family: var(--af-font-mono); font-size: 10px; color: var(--af-text-muted); margin-top: 8px; }
+  .lab { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--af-cyan-mid); margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="item"><div class="box" style="border-radius:8px"></div><div class="n">8px</div><div class="lab">control</div></div>
+    <div class="item"><div class="box" style="border-radius:12px"></div><div class="n">12px</div><div class="lab">button</div></div>
+    <div class="item"><div class="box" style="border-radius:16px"></div><div class="n">16px</div><div class="lab">nav tile</div></div>
+    <div class="item"><div class="box" style="border-radius:24px"></div><div class="n">24px</div><div class="lab">modal</div></div>
+    <div class="item"><div class="box" style="border-radius:32px"></div><div class="n">32px</div><div class="lab">pill</div></div>
+    <div class="item"><div class="box" style="border-radius:999px"></div><div class="n">full</div><div class="lab">badge</div></div>
+  </div>
+</body>
+</html>

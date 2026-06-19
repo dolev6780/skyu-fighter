@@ -1,0 +1,29 @@
+<!-- @dsCard group="Colors" viewport="700x180" name="HUD Cyan" subtitle="The electric-cyan signal color — chrome, labels & data" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--af-bg); font-family: var(--af-font-ui);
+         padding: 24px; color: var(--af-text); }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .sw { width: 150px; border-radius: var(--af-radius-md); overflow: hidden;
+        border: var(--af-stroke) solid var(--af-border); }
+  .chip { height: 64px; }
+  .meta { padding: 8px 10px; background: var(--af-surface); }
+  .name { font-size: 11px; letter-spacing: var(--af-track-wide); text-transform: uppercase;
+          color: var(--af-cyan-mid); font-weight: 600; }
+  .hex { font-family: var(--af-font-mono); font-size: 11px; color: var(--af-text-muted); margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="sw"><div class="chip" style="background:#00eeff;box-shadow:var(--af-glow-cyan) inset"></div><div class="meta"><div class="name">Cyan</div><div class="hex">#00EEFF</div></div></div>
+    <div class="sw"><div class="chip" style="background:#00aaff"></div><div class="meta"><div class="name">Cyan Mid</div><div class="hex">#00AAFF</div></div></div>
+    <div class="sw"><div class="chip" style="background:#0088ff"></div><div class="meta"><div class="name">Blue</div><div class="hex">#0088FF</div></div></div>
+    <div class="sw"><div class="chip" style="background:#88ccff"></div><div class="meta"><div class="name">Blue Soft</div><div class="hex">#88CCFF</div></div></div>
+    <div class="sw"><div class="chip" style="background:#4499ff"></div><div class="meta"><div class="name">Shield</div><div class="hex">#4499FF</div></div></div>
+  </div>
+</body>
+</html>

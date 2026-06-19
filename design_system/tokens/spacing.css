@@ -1,0 +1,44 @@
+/* ─── AeroFighter · Spacing & Radius Tokens ─────────────────────────────────
+   The game uses a roomy mobile-touch rhythm: 12/16/20/24 padding steps,
+   12–24px radii on panels, 32px+ pills, 44px minimum hit targets. */
+
+:root {
+  /* ── Spacing scale ── */
+  --af-space-1: 4px;
+  --af-space-2: 6px;
+  --af-space-3: 8px;
+  --af-space-4: 12px;
+  --af-space-5: 16px;
+  --af-space-6: 20px;
+  --af-space-7: 24px;
+  --af-space-8: 32px;
+  --af-space-9: 36px;
+  --af-space-10: 48px;
+
+  /* ── Radii ── */
+  --af-radius-sm: 8px;     /* buttons, chips, stat-bar clips */
+  --af-radius-md: 12px;    /* nav items, primary buttons, status panels */
+  --af-radius-lg: 16px;    /* selected nav tile */
+  --af-radius-xl: 20px;    /* bottom nav bar */
+  --af-radius-2xl: 24px;   /* modals, glass panels */
+  --af-radius-pill: 32px;  /* action pills */
+  --af-radius-full: 999px; /* avatars, power-up badges, dots */
+
+  /* ── Hit targets ── */
+  --af-hit-min: 44px;      /* minimum tappable (pause btn, etc.) */
+
+  /* ── Strokes ── */
+  --af-stroke-hairline: 1px;
+  --af-stroke: 1.5px;      /* default panel/border weight */
+  --af-stroke-bold: 2px;   /* selected / alert borders */
+
+  /* ── Progress / data bars ── */
+  --af-bar-thin: 4px;      /* HUD timers, kill progress */
+  --af-bar: 6px;           /* stat bars */
+
+  /* ── Semantic aliases ── */
+  --space-card-pad: var(--af-space-7);
+  --space-stack: var(--af-space-5);
+  --radius-card: var(--af-radius-2xl);
+  --radius-control: var(--af-radius-md);
+}

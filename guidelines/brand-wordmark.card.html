@@ -1,0 +1,29 @@
+<!-- @dsCard group="Brand" viewport="700x240" name="Wordmark & Emblem" subtitle="AeroFighter lockup built on the real jet sprite" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; font-family: var(--af-font-display); color: var(--af-text);
+         background: radial-gradient(120% 120% at 50% 0%, #07203f 0%, #001133 55%, #000a1a 100%);
+         padding: 28px; display: flex; align-items: center; gap: 28px; }
+  .emblem { width: 120px; height: 120px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
+            border-radius: 999px; border: 1.5px solid rgba(0,238,255,0.4);
+            background: radial-gradient(circle, rgba(0,170,255,0.18) 0%, transparent 70%);
+            box-shadow: var(--af-glow-cyan-soft); }
+  .emblem img { width: 78px; filter: drop-shadow(0 0 10px rgba(0,170,255,0.7)); }
+  .mark { font-size: 46px; font-weight: 700; letter-spacing: 4px; line-height: 1; }
+  .aero { color: var(--af-cyan); text-shadow: var(--af-text-glow-cyan); }
+  .fighter { color: var(--af-orange); text-shadow: var(--af-text-glow-orange); font-style: italic; }
+  .tag { margin-top: 10px; font-family: var(--af-font-mono); font-size: 12px; letter-spacing: 3px; color: var(--af-text-muted); }
+</style>
+</head>
+<body>
+  <div class="emblem"><img src="../assets/sprites/jet_2_level.png" alt="AeroFighter jet"></div>
+  <div>
+    <div class="mark"><span class="aero">AERO</span><span class="fighter">FIGHTER</span></div>
+    <div class="tag">TACTICAL · ARCADE · COMBAT</div>
+  </div>
+</body>
+</html>

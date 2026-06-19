@@ -1,0 +1,117 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/core/**",
+              "ui_kits/aerofighter-app/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\"]?(?:Chakra Petch|Share Tech Mono))/i]",
+        "message": "Font not provided by the design system. Available: Chakra Petch, Share Tech Mono."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Avatar'] > JSXAttribute > JSXIdentifier[name!=/^(?:src|initials|size|ring|style|key|ref|className|style|children)$/]",
+        "message": "<Avatar> doesn't accept that prop. Declared props: src, initials, size, ring, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|color|variant|dot|style|key|ref|className|style|children)$/]",
+        "message": "<Badge> doesn't accept that prop. Declared props: children, color, variant, dot, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:solid|outline)$/]",
+        "message": "<Badge> variant must be one of 'solid' | 'outline'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|size|icon|disabled|block|children|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: variant, size, icon, disabled, block, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassModal'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|accent|glow|width|scrim|onScrimClick|style|key|ref|className|style|children)$/]",
+        "message": "<GlassModal> doesn't accept that prop. Declared props: children, accent, glow, width, scrim, onScrimClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='IconButton'] > JSXAttribute > JSXIdentifier[name!=/^(?:icon|label|active|size|color|shape|key|ref|className|style|children)$/]",
+        "message": "<IconButton> doesn't accept that prop. Declared props: icon, label, active, size, color, shape."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='IconButton'] > JSXAttribute[name.name='shape'] > Literal[value!=/^(?:circle|rounded)$/]",
+        "message": "<IconButton> shape must be one of 'circle' | 'rounded'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='JetChip'] > JSXAttribute > JSXIdentifier[name!=/^(?:color|highlighted|equipped|onClick|style|key|ref|className|style|children)$/]",
+        "message": "<JetChip> doesn't accept that prop. Declared props: color, highlighted, equipped, onClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='NavItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:icon|label|key|ref|className|style|children)$/]",
+        "message": "<NavItem> doesn't accept that prop. Declared props: icon, label."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Panel'] > JSXAttribute > JSXIdentifier[name!=/^(?:accent|glow|padding|radius|children|key|ref|className|style|children)$/]",
+        "message": "<Panel> doesn't accept that prop. Declared props: accent, glow, padding, radius, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PowerUpMeta'] > JSXAttribute > JSXIdentifier[name!=/^(?:key|label|color|key|ref|className|style|children)$/]",
+        "message": "<PowerUpMeta> doesn't accept that prop. Declared props: key, label, color."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='ProgressBar'] > JSXAttribute > JSXIdentifier[name!=/^(?:value|color|height|glow|track|style|key|ref|className|style|children)$/]",
+        "message": "<ProgressBar> doesn't accept that prop. Declared props: value, color, height, glow, track, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='SegmentOption'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|color|key|ref|className|style|children)$/]",
+        "message": "<SegmentOption> doesn't accept that prop. Declared props: label, color."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='StatBar'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|value|color|style|key|ref|className|style|children)$/]",
+        "message": "<StatBar> doesn't accept that prop. Declared props: label, value, color, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Toggle'] > JSXAttribute > JSXIdentifier[name!=/^(?:checked|onChange|color|style|key|ref|className|style|children)$/]",
+        "message": "<Toggle> doesn't accept that prop. Declared props: checked, onChange, color, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='WorldMeta'] > JSXAttribute > JSXIdentifier[name!=/^(?:id|name|accent|key|ref|className|style|children)$/]",
+        "message": "<WorldMeta> doesn't accept that prop. Declared props: id, name, accent."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ]
+}

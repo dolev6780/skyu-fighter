@@ -1,0 +1,9 @@
+/* ─── AeroFighter Webfonts ──────────────────────────────────────────────────
+   The Flutter source ships with system Roboto. For the design system we adopt
+   tactical-HUD typefaces that better express the cockpit aesthetic:
+     · Chakra Petch  — squared, technical UI + display (headings, labels, body)
+     · Share Tech Mono — telemetry / numeric readouts (score, currency, coords)
+   Served from Google Fonts. To fully self-host, drop the .woff2 files in
+   assets/fonts/ and repoint these src URLs. (Substitution — see readme.md.)
+*/
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,500;1,700&family=Share+Tech+Mono&display=swap');

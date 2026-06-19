@@ -1,0 +1,69 @@
+/* ─── AeroFighter · Color Tokens ────────────────────────────────────────────
+   Tactical cockpit-HUD palette: deep-navy surfaces, electric-cyan chrome,
+   orange/red action accents, plus semantic + per-world + per-skin accents.
+   Sourced directly from the Flutter game (lib/main.dart, start_menu.dart). */
+
+:root {
+  /* ── Surfaces — deep navy, near-black cockpit chrome ── */
+  --af-void: #000a1a;          /* deepest backdrop behind everything */
+  --af-bg: #001133;            /* game background — deep navy */
+  --af-surface: #051020;       /* panel / card fill */
+  --af-surface-2: #07182e;     /* raised panel fill */
+  --af-border: #102540;        /* default panel border */
+  --af-border-quiet: #002244;  /* dividers, hairlines */
+  --af-border-inactive: #003366; /* unselected chip border */
+
+  /* ── Brand cyan — the HUD signal color ── */
+  --af-cyan: #00eeff;          /* primary HUD text + icons (brightest) */
+  --af-cyan-mid: #00aaff;      /* labels, secondary chrome */
+  --af-blue: #0088ff;          /* primary interactive / buttons */
+  --af-blue-soft: #88ccff;     /* score readout, soft data */
+  --af-shield: #4499ff;        /* shield / armor energy */
+
+  /* ── Action orange — CTAs, "SCRAMBLE", selected nav ── */
+  --af-orange: #ff8800;        /* action primary */
+  --af-orange-deep: #ff5500;   /* action glow / gradient end */
+  --af-orange-hot: #ff4400;    /* hottest gradient stop */
+  --af-amber: #ff6600;         /* notification dots, gems */
+
+  /* ── Semantic ── */
+  --af-danger: #ff3333;        /* damage, game over, abort */
+  --af-danger-hot: #ff2244;    /* crimson alert */
+  --af-success: #00ee55;       /* repair, confirm, equipped check */
+  --af-success-bright: #33ff33;
+  --af-warning: #ffcc00;       /* personal best, caution */
+  --af-gold: #ffd700;          /* score star, currency */
+  --af-nuke: #cc33ff;          /* tactical nuke / special */
+
+  /* ── Text on dark ── */
+  --af-text: #ffffff;          /* primary */
+  --af-text-dim: rgba(255,255,255,0.70); /* secondary copy */
+  --af-text-muted: rgba(255,255,255,0.54); /* labels, captions */
+  --af-text-faint: rgba(255,255,255,0.38); /* disabled, hints */
+  --af-on-action: #000a14;     /* text on orange buttons (near-black) */
+
+  /* ── World accents (campaign sectors) ── */
+  --af-world-dawn: #ffaa00;    /* W1 · DAWN SECTOR */
+  --af-world-midday: #00aaff;  /* W2 · MIDDAY FRONT */
+  --af-world-dusk: #ff5500;    /* W3 · DUSK ZONE */
+  --af-world-night: #9933ff;   /* W4 · NIGHT OPS */
+
+  /* ── Jet skin accents (hangar) ── */
+  --af-skin-cobalt: #0088ff;   /* COBALT ALPHA (balanced) */
+  --af-skin-crimson: #ff2244;  /* CRIMSON PHOENIX (speed) */
+  --af-skin-solar: #ffbb00;    /* SOLAR EAGLE (armor) */
+  --af-skin-emerald: #00ee55;  /* EMERALD VIPER (firepower) */
+
+  /* ── Semantic aliases ── */
+  --surface-app: var(--af-bg);
+  --surface-card: var(--af-surface);
+  --surface-raised: var(--af-surface-2);
+  --border-card: var(--af-border);
+  --border-divider: var(--af-border-quiet);
+  --text-body: var(--af-text-dim);
+  --text-heading: var(--af-text);
+  --text-label: var(--af-cyan-mid);
+  --accent-primary: var(--af-cyan);
+  --accent-action: var(--af-orange);
+  --focus-ring: var(--af-cyan);
+}

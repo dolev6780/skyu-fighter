@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AeroFighter — New Sprites</title>
+<style>
+  :root{
+    --bg:#001133; --surface:#051020; --void:#000a1a; --border:#102540;
+    --cyan:#00eeff; --cyanmid:#00aaff; --orange:#ff8800; --danger:#ff3333;
+    --text:#dce8ff; --dim:#6a82a8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #0a2150 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+    min-height:100vh; padding:48px 32px 80px;
+  }
+  .head{max-width:1080px;margin:0 auto 40px;text-align:center}
+  .kicker{font-size:13px;letter-spacing:.38em;color:var(--cyan);text-transform:uppercase;font-weight:700}
+  h1{font-size:34px;letter-spacing:.04em;margin:10px 0 8px;text-transform:uppercase}
+  .sub{color:var(--dim);font-size:15px;max-width:620px;margin:0 auto;line-height:1.5}
+  .section{max-width:1080px;margin:0 auto 14px;display:flex;align-items:center;gap:14px}
+  .section h2{font-size:14px;letter-spacing:.3em;text-transform:uppercase;color:var(--orange);font-weight:700;white-space:nowrap}
+  .section .rule{height:1px;flex:1;background:linear-gradient(90deg,var(--border),transparent)}
+  .grid{max-width:1080px;margin:0 auto 44px;display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(232px,1fr))}
+  .card{
+    background:linear-gradient(180deg,var(--surface),var(--void));
+    border:1px solid var(--border);border-radius:16px;overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .stage{
+    position:relative;height:200px;display:flex;align-items:center;justify-content:center;gap:26px;
+    background:
+      radial-gradient(420px 200px at 50% 120%, rgba(0,170,255,.10), transparent),
+      repeating-linear-gradient(0deg, transparent 0 23px, rgba(255,255,255,.022) 23px 24px),
+      var(--void);
+  }
+  .stage img{image-rendering:auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55))}
+  .lg{height:128px}
+  .pt{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .pt small{font-size:10px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+  .meta{padding:14px 16px 16px;border-top:1px solid var(--border)}
+  .name{font-size:15px;font-weight:700;letter-spacing:.03em;display:flex;align-items:center;gap:8px}
+  .dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor}
+  .file{font-family:"Share Tech Mono",ui-monospace,monospace;font-size:11px;color:var(--cyan);margin-top:5px}
+  .desc{font-size:12.5px;color:var(--dim);margin-top:8px;line-height:1.45}
+  .note{max-width:1080px;margin:8px auto 0;font-size:12.5px;color:var(--dim);text-align:center}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="kicker">AeroFighter · Sprite Drop</div>
+    <h1>New Combat Sprites</h1>
+    <p class="sub">Five drop-in PNGs in the AeroFighter style — dedicated enemy jets (so they're no longer just a recolored player ship) plus art for bullets and the homing missile. Shown large and at in-game scale on the night backdrop.</p>
+  </div>
+
+  <div class="section"><h2>Enemy Jets</h2><div class="rule"></div></div>
+  <div class="grid">
+    <div class="card">
+      <div class="stage">
+        <div class="pt"><img class="lg" src="assets/sprites/enemy_fighter_256.png" alt="" style="transform:rotate(180deg)"><small>in game ↓</small></div>
+        <div class="pt"><img src="assets/sprites/enemy_fighter_256.png" style="height:150px" alt=""><small>art</small></div>
+      </div>
+      <div class="meta">
+        <div class="name"><span class="dot" style="color:#ff3b3b"></span>Enemy Fighter</div>
+        <div class="file">enemy_fighter_256.png</div>
+        <div class="desc">Swept-wing red interceptor. Replaces the red-tinted player jet used by <b>SmallFighter</b>. Nose-up art; game rotates it to face the player.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stage">
+        <div class="pt"><img class="lg" src="assets/sprites/enemy_bomber_256.png" alt="" style="transform:rotate(180deg)"><small>in game ↓</small></div>
+        <div class="pt"><img src="assets/sprites/enemy_bomber_256.png" style="height:150px" alt=""><small>art</small></div>
+      </div>
+      <div class="meta">
+        <div class="name"><span class="dot" style="color:#ff8800"></span>Enemy Bomber</div>
+        <div class="file">enemy_bomber_256.png</div>
+        <div class="desc">Bulky four-engine gunship with orange hazard stripes. Replaces the green-tinted jet used by <b>BomberEnemy</b>. White damage-flash still works.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section"><h2>Projectiles</h2><div class="rule"></div></div>
+  <div class="grid">
+    <div class="card">
+      <div class="stage">
+        <img src="assets/sprites/bullet_player_64.png" style="height:120px" alt="">
+      </div>
+      <div class="meta">
+        <div class="name"><span class="dot" style="color:#00eeff"></span>Player Bullet</div>
+        <div class="file">bullet_player_64.png</div>
+        <div class="desc">Cyan plasma bolt with baked glow. Swaps the canvas-drawn beam in <b>PlayerBullet</b>.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stage">
+        <img src="assets/sprites/bullet_enemy_64.png" style="height:120px" alt="">
+      </div>
+      <div class="meta">
+        <div class="name"><span class="dot" style="color:#ff3333"></span>Enemy Bullet</div>
+        <div class="file">bullet_enemy_64.png</div>
+        <div class="desc">Hot red energy orb. Swaps the canvas circle in <b>EnemyBullet</b>.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stage">
+        <img src="assets/sprites/missile_player_128.png" style="height:150px" alt="">
+      </div>
+      <div class="meta">
+        <div class="name"><span class="dot" style="color:#ff8800"></span>Homing Missile</div>
+        <div class="file">missile_player_128.png</div>
+        <div class="desc">Red-warhead rocket with fins and thrust flame. Swaps the canvas missile in <b>PlayerMissile</b>.</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">All sprites are transparent PNGs, nose-up, sized as power-of-two. Integration code is in <b>design_handoff_aerofighter/SPRITES.md</b>.</p>
+</body>
+</html>

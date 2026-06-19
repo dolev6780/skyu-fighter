@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="AeroFighter App" description="Interactive mobile metagame — Home / Hangar / Shop / Pilot tabs plus gameplay HUD and Game Over flow, built on the AeroFighter design system." -->
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0">
+  <script src="./ds-base.js"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="TopBar.jsx"></script>
+  <script type="text/babel" src="HomeScreen.jsx"></script>
+  <script type="text/babel" src="HangarScreen.jsx"></script>
+  <script type="text/babel" src="SettingsScreens.jsx"></script>
+  <script type="text/babel" src="GameplayHUD.jsx"></script>
+  <script type="text/babel" src="Modals.jsx"></script>
+  <script type="text/babel" src="App.jsx"></script>
+  <style>
+    html, body { margin: 0; overflow: hidden; }
+    .af-stage { height: 100vh; display: flex; align-items: center; justify-content: center; background: #02060f; font-family: var(--af-font-ui); }
+    #af-root { transform-origin: center center; }
+    .device { position: relative; width: 393px; height: 852px; overflow: hidden; background: var(--af-bg); border-radius: 38px; box-shadow: 0 30px 80px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,238,255,0.08); }
+    .sky { position: absolute; inset: 0; background-image: url(../../assets/backgrounds/bg_midday.png); background-size: cover; background-position: center; transition: background-image var(--af-dur-slow) var(--af-ease); }
+    .sky-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,17,51,0.55) 0%, rgba(0,10,26,0.86) 55%, rgba(0,10,26,0.95) 100%); transition: opacity var(--af-dur-slow) var(--af-ease); }
+    .material-symbols-rounded { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; user-select: none; }
+    .hud-scanlines { background: repeating-linear-gradient(0deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 1px, transparent 1px, transparent 3px); mix-blend-mode: multiply; opacity: 0.5; }
+    .device.shaking { animation: af-shake 0.36s var(--af-ease); }
+    @keyframes af-shake { 0%,100% { transform: translate(0,0); } 15% { transform: translate(-5px,3px); } 35% { transform: translate(5px,-3px); } 55% { transform: translate(-4px,-3px); } 75% { transform: translate(4px,3px); } }
+    .af-float { animation: af-float-up 0.85s var(--af-ease) forwards; }
+    @keyframes af-float-up { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0.8); } 18% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-150%) scale(1.15); } }
+    .af-pulse { display: inline-flex; animation: af-pulse 1.4s ease-in-out infinite; }
+    @keyframes af-pulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.1); filter: brightness(1.35); } }
+    .af-combo-pop { animation: af-combo-pop 0.32s var(--af-ease); }
+    @keyframes af-combo-pop { 0% { transform: scale(0.6); opacity: 0; } 45% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .device.shaking, .af-float, .af-pulse, .af-combo-pop { animation: none; } .af-pulse { transform: none; } }
+  </style>
+</helmet>
+<div class="af-stage">
+  <div id="af-root" style="width: 393px; height: 852px;"></div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    const tryMount = () => {
+      const el = document.getElementById('af-root');
+      const NS = window.AeroFighterDesignSystem_9520d9;
+      if (el && window.App && window.React && window.ReactDOM && NS) {
+        if (this._mounted) return;
+        this._mounted = true;
+        window.ReactDOM.createRoot(el).render(window.React.createElement(window.App));
+        const fit = () => {
+          const s = Math.min((window.innerWidth - 16) / 393, (window.innerHeight - 16) / 852);
+          el.style.transform = 'scale(' + Math.max(0.2, s) + ')';
+        };
+        window.addEventListener('resize', fit);
+        this._fit = fit;
+        setTimeout(fit, 0);
+      } else {
+        this._t = setTimeout(tryMount, 80);
+      }
+    };
+    tryMount();
+  }
+  componentWillUnmount() { if (this._t) clearTimeout(this._t); }
+}
+</script>
+</body>
+</html>

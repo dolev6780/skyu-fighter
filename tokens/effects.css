@@ -1,0 +1,49 @@
+/* ─── AeroFighter · Effects Tokens ──────────────────────────────────────────
+   Neon glow shadows, glass blur, and gradients. The HUD leans on colored
+   outer glows (orange CTA, cyan chrome, red alert) and frosted dark glass
+   for modals (BackdropFilter blur 12–14 in the game). */
+
+:root {
+  /* ── Glow shadows (outer) ── */
+  --af-glow-cyan: 0 0 16px rgba(0,238,255,0.55);
+  --af-glow-cyan-soft: 0 0 24px rgba(0,238,255,0.30);
+  --af-glow-orange: 0 5px 20px rgba(255,85,0,0.50);
+  --af-glow-orange-soft: 0 0 12px rgba(255,85,0,0.40);
+  --af-glow-danger: 0 0 24px rgba(255,0,0,0.18);
+  --af-glow-success: 0 0 14px rgba(0,238,85,0.45);
+  --af-glow-nuke: 0 0 18px rgba(204,51,255,0.45);
+
+  /* ── Panel / modal shadows ── */
+  --af-shadow-panel: 0 8px 24px rgba(0,0,0,0.45);
+  --af-shadow-modal: 0 16px 48px rgba(0,0,0,0.6);
+  --af-shadow-inset: inset 0 0 0 1px rgba(255,255,255,0.04);
+
+  /* ── Text glow (HUD readouts) ── */
+  --af-text-glow-cyan: 0 0 12px rgba(0,238,255,0.7);
+  --af-text-glow-orange: 0 0 10px rgba(255,85,0,0.7);
+  --af-text-glow-danger: 0 0 16px rgba(255,0,0,0.9);
+  --af-text-shadow-hud: 0 1px 6px rgba(0,0,51,0.8); /* readability on sky */
+
+  /* ── Glass blur ── */
+  --af-blur-glass: blur(14px); /* @kind other */
+  --af-blur-modal: blur(12px); /* @kind other */
+  --af-glass-fill: rgba(0,0,0,0.75);
+  --af-glass-fill-strong: rgba(5,16,32,0.95);
+
+  /* ── Signature gradients ── */
+  --af-grad-action: linear-gradient(180deg, #ff8800 0%, #ff4400 100%); /* @kind color */ /* SCRAMBLE button */
+  --af-grad-sky-dawn: linear-gradient(180deg, #b8cdd8 0%, #cdd8c0 100%); /* @kind color */
+  --af-grad-hud-vignette: radial-gradient(120% 80% at 50% 0%, rgba(0,17,51,0) 40%, rgba(0,10,26,0.7) 100%); /* @kind color */
+
+  /* ── Motion ── */
+  --af-ease: cubic-bezier(0.2, 0.7, 0.2, 1); /* @kind other */
+  --af-dur-fast: 120ms; /* @kind other */
+  --af-dur: 200ms; /* @kind other */
+  --af-dur-slow: 300ms; /* @kind other */
+
+  /* ── Semantic aliases ── */
+  --shadow-card: var(--af-shadow-panel);
+  --shadow-modal: var(--af-shadow-modal);
+  --glow-action: var(--af-glow-orange);
+  --glow-accent: var(--af-glow-cyan);
+}

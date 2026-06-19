@@ -6,8 +6,8 @@ import 'bullet.dart';
 import 'main.dart';
 
 class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
-  static const double _baseFireInterval = 0.13;
-  static const double _invincibleDuration = 1.8;
+  static const double _baseFireInterval = 0.40;
+  static const double _invincibleDuration = 2.0;
 
   double get _effectiveFireInterval {
     final fp = jetSkins[game.selectedSkinIndex].firepowerStat;
@@ -16,7 +16,8 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
 
   double _fireTimer = 0;
   double _invincibleTimer = 0;
-  bool _visible = true;
+  double _hitFlashTimer = 0;
+  double _missileFireTimer = 0;
 
   bool get isInvincible => _invincibleTimer > 0;
 
@@ -30,6 +31,7 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
   late final SpriteComponent _staticBodyComponent;
   late final SpriteAnimationComponent _animatedBodyComponent;
   final List<Sprite> _sprites = [];
+  late final Sprite _sideSprite;
 
   // Banking physics variables
   double _targetBank = 0.0;
@@ -49,6 +51,8 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
       Sprite(game.images.fromCache('jet_3_bank_right.png')),
       Sprite(game.images.fromCache('jet_4_hard_right.png')),
     ]);
+
+    _sideSprite = Sprite(game.images.fromCache('jet_hero_side_512.png'));
 
     // Create the static body component (centered at Vector2.zero since the canvas is already translated)
     _staticBodyComponent = SpriteComponent(
@@ -74,8 +78,9 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
   void moveBy(Vector2 delta) {
     final sp = jetSkins[game.selectedSkinIndex].speedStat;
     position += delta * (sp / 0.6).clamp(0.6, 1.8);
-    position.x = position.x.clamp(size.x / 2, kGameWidth - size.x / 2);
-    position.y = position.y.clamp(size.y / 2, kGameHeight - size.y / 2);
+    const padding = 12.0;
+    position.x = position.x.clamp(size.x / 2 + padding, kGameWidth - size.x / 2 - padding);
+    position.y = position.y.clamp(size.y / 2 + padding, kGameHeight - size.y / 2 - padding);
 
     if (!game.isHorizontalLevel) {
       _movedThisFrame = true;
@@ -94,23 +99,25 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
   void triggerInvincibility() {
     final armor = jetSkins[game.selectedSkinIndex].armorStat;
     _invincibleTimer = _invincibleDuration * (armor / 0.6).clamp(0.6, 1.8);
-    _visible = true;
+    _hitFlashTimer = 0.2; // Flash red for 0.2s
+  }
+
+  void triggerHitFlash() {
+    _hitFlashTimer = 0.2;
   }
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    if (shieldTimer > 0) {
-      shieldTimer -= dt;
-    }
-
-    if (rapidFireTimer > 0) {
-      rapidFireTimer -= dt;
-    }
-
+    // Power-ups now last until the player loses a life (except missiles which now have a 30s timer)
     if (missileTimer > 0) {
       missileTimer -= dt;
+      _missileFireTimer += dt;
+      if (_missileFireTimer >= 3.0) {
+        _missileFireTimer = 0;
+        _shootMissiles();
+      }
     }
 
     _fireTimer += dt;
@@ -120,10 +127,11 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
       _shoot();
     }
 
+    if (_hitFlashTimer > 0) {
+      _hitFlashTimer -= dt;
+    }
     if (_invincibleTimer > 0) {
       _invincibleTimer -= dt;
-      _visible = ((_invincibleTimer * 8).floor() % 2 == 0);
-      if (_invincibleTimer <= 0) _visible = true;
     }
 
     // Horizontal mode: always level (no banking while facing right)
@@ -181,10 +189,6 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
         game.world.add(PlayerBullet(position: Vector2(bulletX + 2, position.y - 16), direction: Vector2(0.97, -0.24).normalized()));
         game.world.add(PlayerBullet(position: Vector2(bulletX + 2, position.y + 16), direction: Vector2(0.97, 0.24).normalized()));
       }
-      if (missileTimer > 0) {
-        game.world.add(PlayerMissile(position: Vector2(position.x, position.y - 24)));
-        game.world.add(PlayerMissile(position: Vector2(position.x, position.y + 24)));
-      }
     } else {
       final bulletY = position.y - size.y / 2;
       if (weaponLevel == 1) {
@@ -201,23 +205,33 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
         game.world.add(PlayerBullet(position: Vector2(position.x - 16, bulletY + 2), direction: Vector2(-0.24, -0.97).normalized()));
         game.world.add(PlayerBullet(position: Vector2(position.x + 16, bulletY + 2), direction: Vector2(0.24, -0.97).normalized()));
       }
-      if (missileTimer > 0) {
-        game.world.add(PlayerMissile(position: Vector2(position.x - 24, position.y)));
-        game.world.add(PlayerMissile(position: Vector2(position.x + 24, position.y)));
-      }
+    }
+  }
+
+  void _shootMissiles() {
+    if (game.gameOver) return;
+    if (game.isHorizontalLevel) {
+      game.world.add(PlayerMissile(position: Vector2(position.x, position.y - 24)));
+      game.world.add(PlayerMissile(position: Vector2(position.x, position.y + 24)));
+    } else {
+      game.world.add(PlayerMissile(position: Vector2(position.x - 24, position.y)));
+      game.world.add(PlayerMissile(position: Vector2(position.x + 24, position.y)));
     }
   }
 
   @override
   void render(Canvas canvas) {
-    if (!_visible) return;
 
     final isHoriz = game.isHorizontalLevel;
 
     // Shadow offset depends on orientation
+    final shadowCenter = isHoriz 
+        ? Offset(size.x / 2 - 8, size.y / 2 + 16) 
+        : Offset(size.x / 2, size.y / 2 + 16);
+        
     canvas.drawOval(
       Rect.fromCenter(
-        center: isHoriz ? Offset(size.x / 2 - 8, 0) : Offset(0, size.y / 2 - 8),
+        center: shadowCenter,
         width: isHoriz ? 10 : size.x * 0.75,
         height: isHoriz ? size.y * 0.75 : 10,
       ),
@@ -227,20 +241,44 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
     );
 
     canvas.save();
-    if (isHoriz) canvas.rotate(pi / 2); // face right
-
-    final filter = game.selectedSkinFilter;
-    if (filter != null) {
-      canvas.saveLayer(null, Paint()..colorFilter = filter);
+    if (isHoriz) {
+      canvas.translate(size.x / 2, size.y / 2);
+      canvas.rotate(pi / 2); // face right
+      canvas.translate(-size.x / 2, -size.y / 2);
     }
 
-    if (_currentBank.abs() < 0.3) {
-      _animatedBodyComponent.render(canvas);
+    final skinFilter = game.selectedSkinFilter;
+    
+    // Determine which filter to apply: hit flash overrides skin color
+    ColorFilter? filterToApply;
+    if (_hitFlashTimer > 0) {
+      filterToApply = const ColorFilter.mode(Color(0x88FF0000), BlendMode.srcATop);
+    } else if (skinFilter != null) {
+      filterToApply = skinFilter;
+    }
+
+    if (filterToApply != null) {
+      canvas.saveLayer(null, Paint()..colorFilter = filterToApply);
+    }
+
+    if (isHoriz) {
+      // The side sprite might natively point right. If it points up, we need pi/2.
+      // We will assume it points right and counter-rotate the canvas that was rotated earlier.
+      canvas.save();
+      canvas.translate(size.x / 2, size.y / 2);
+      canvas.rotate(-pi / 2); // Counteract the earlier rotation so it draws natively
+      canvas.translate(-size.x / 2, -size.y / 2);
+      _sideSprite.render(canvas, size: size);
+      canvas.restore();
     } else {
-      _staticBodyComponent.render(canvas);
+      if (_currentBank.abs() < 0.3) {
+        _animatedBodyComponent.render(canvas);
+      } else {
+        _staticBodyComponent.render(canvas);
+      }
     }
 
-    if (filter != null) {
+    if (filterToApply != null) {
       canvas.restore();
     }
 
@@ -252,8 +290,10 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
       final pulse = 1.0 + sin(time * 6) * 0.04;
       final opacity = 0.6 + sin(time * 10) * 0.15;
 
+      final center = Offset(size.x / 2, size.y / 2);
+
       canvas.drawCircle(
-        Offset.zero,
+        center,
         size.x * 0.85 * pulse,
         Paint()
           ..color = const Color(0x223388FF)
@@ -261,10 +301,10 @@ class Player extends PositionComponent with HasGameReference<AeroFighterGame> {
       );
 
       canvas.drawCircle(
-        Offset.zero,
+        center,
         size.x * 0.85 * pulse,
         Paint()
-          ..color = const Color(0xFF3388FF).withOpacity(opacity)
+          ..color = const Color(0xFF3388FF).withValues(alpha: opacity)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.0
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),

@@ -43,30 +43,39 @@ abstract class Enemy extends PositionComponent with HasGameReference<AeroFighter
 // ─── Small Fighter ────────────────────────────────────────────────────────────
 
 class SmallFighter extends Enemy {
-  final int movementPattern; // 0=straight, 1=left diagonal, 2=right diagonal, 3=zigzag
+  int movementPattern; // 0=straight, 1=left diagonal, 2=right diagonal, 3=zigzag
   final double _baseX;
   final double _baseY;
   final double _moveSpeed;
   double _time = 0;
+  bool _flashWhite = false;
+  double _flashTimer = 0;
   late final Sprite _sprite;
 
-  SmallFighter({required Vector2 position, int? pattern})
+  SmallFighter({required super.position, int? pattern})
       : movementPattern = pattern ?? Random().nextInt(4),
         _baseX = position.x,
         _baseY = position.y,
-        _moveSpeed = 130 + Random().nextDouble() * 70,
+        _moveSpeed = 70 + Random().nextDouble() * 40,
         super(
-          position: position,
           size: Vector2(36, 38),
-          health: 1,
+          health: 100,
           scoreValue: 100,
-          shootInterval: 2.0 + Random().nextDouble() * 2.0,
-          initialShootDelay: Random().nextDouble() * 2.0,
+          shootInterval: 2.5 + Random().nextDouble() * 2.0,
+          initialShootDelay: 1.0 + Random().nextDouble() * 1.5,
         );
 
   @override
   Future<void> onLoad() async {
-    _sprite = Sprite(game.images.fromCache('jet_2_level.png'));
+    final img = game.isHorizontalLevel ? 'enemy_fighter_side_512.png' : 'enemy_fighter_256.png';
+    _sprite = Sprite(game.images.fromCache(img));
+  }
+
+  @override
+  void takeDamage(int damage) {
+    super.takeDamage(damage);
+    _flashWhite = true;
+    _flashTimer = 0.1;
   }
 
   @override
@@ -85,30 +94,49 @@ class SmallFighter extends Enemy {
       switch (movementPattern) {
         case 0:
           position.x -= currentSpeed * dt;
+          break;
         case 1:
           position.x -= currentSpeed * dt;
           position.y -= currentSpeed * 0.3 * dt;
+          if (position.y <= size.y / 2) movementPattern = 2;
+          break;
         case 2:
           position.x -= currentSpeed * dt;
           position.y += currentSpeed * 0.3 * dt;
+          if (position.y >= kGameHeight - size.y / 2) movementPattern = 1;
+          break;
         case 3:
           position.x -= currentSpeed * dt;
           position.y = _baseY + sin(_time * 2.5) * 70;
+          break;
       }
+      position.y = position.y.clamp(size.y / 2 + 12.0, kGameHeight - size.y / 2 - 12.0);
     } else {
       switch (movementPattern) {
         case 0:
           position.y += currentSpeed * dt;
+          break;
         case 1:
           position.y += currentSpeed * dt;
           position.x -= currentSpeed * 0.3 * dt;
+          if (position.x <= size.x / 2) movementPattern = 2;
+          break;
         case 2:
           position.y += currentSpeed * dt;
           position.x += currentSpeed * 0.3 * dt;
+          if (position.x >= kGameWidth - size.x / 2) movementPattern = 1;
+          break;
         case 3:
           position.y += currentSpeed * dt;
           position.x = _baseX + sin(_time * 2.5) * 70;
+          break;
       }
+      position.x = position.x.clamp(size.x / 2 + 12.0, kGameWidth - size.x / 2 - 12.0);
+    }
+    
+    if (_flashWhite) {
+      _flashTimer -= dt;
+      if (_flashTimer <= 0) _flashWhite = false;
     }
   }
 
@@ -116,7 +144,9 @@ class SmallFighter extends Enemy {
   void render(Canvas canvas) {
     canvas.save();
     // Face down in normal mode, face left in horizontal mode
-    canvas.rotate(game.isHorizontalLevel ? -pi / 2 : pi);
+    if (!game.isHorizontalLevel) {
+      canvas.rotate(pi);
+    }
 
     // Draw drop shadow
     canvas.drawOval(
@@ -130,17 +160,14 @@ class SmallFighter extends Enemy {
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
 
-    // Tint red using modulate filter to preserve shading
-    final paint = Paint()
-      ..colorFilter = const ColorFilter.mode(Color(0xFFFF4444), BlendMode.modulate);
-
-    _sprite.render(
-      canvas,
-      position: Vector2.zero(),
-      size: size,
-      anchor: Anchor.center,
-      overridePaint: paint,
-    );
+    if (_flashWhite) {
+      final paint = Paint()
+        ..colorFilter = const ColorFilter.mode(Color(0xFFFFFFFF), BlendMode.srcIn);
+      _sprite.render(canvas, position: Vector2.zero(), size: size,
+          anchor: Anchor.center, overridePaint: paint);
+    } else {
+      _sprite.render(canvas, position: Vector2.zero(), size: size, anchor: Anchor.center);
+    }
     canvas.restore();
   }
 }
@@ -148,7 +175,7 @@ class SmallFighter extends Enemy {
 // ─── Bomber ───────────────────────────────────────────────────────────────────
 
 class BomberEnemy extends Enemy {
-  static const int _maxHealth = 3;
+  static const int _maxHealth = 300;
   final double _baseX;
   final double _baseY;
   double _time = 0;
@@ -156,21 +183,21 @@ class BomberEnemy extends Enemy {
   double _flashTimer = 0;
   late final Sprite _sprite;
 
-  BomberEnemy({required Vector2 position})
+  BomberEnemy({required super.position})
       : _baseX = position.x,
         _baseY = position.y,
         super(
-          position: position,
           size: Vector2(60, 50),
           health: _maxHealth,
           scoreValue: 350,
-          shootInterval: 1.4,
-          initialShootDelay: 0.7,
+          shootInterval: 1.8,
+          initialShootDelay: 1.0,
         );
 
   @override
   Future<void> onLoad() async {
-    _sprite = Sprite(game.images.fromCache('jet_2_level.png'));
+    final img = game.isHorizontalLevel ? 'enemy_bomber_side_512.png' : 'enemy_bomber_256.png';
+    _sprite = Sprite(game.images.fromCache(img));
   }
 
   @override
@@ -196,13 +223,13 @@ class BomberEnemy extends Enemy {
     _time += dt;
     super.update(dt);
     if (game.isHorizontalLevel) {
-      position.x -= 75 * game.speedMultiplier * dt;
+      position.x -= 45 * game.speedMultiplier * dt;
       position.y = _baseY + sin(_time * 1.1) * 100;
-      position.y = position.y.clamp(size.y / 2, kGameHeight - size.y / 2);
+      position.y = position.y.clamp(size.y / 2 + 12.0, kGameHeight - size.y / 2 - 12.0);
     } else {
-      position.y += 75 * game.speedMultiplier * dt;
+      position.y += 45 * game.speedMultiplier * dt;
       position.x = _baseX + sin(_time * 1.1) * 100;
-      position.x = position.x.clamp(size.x / 2, kGameWidth - size.x / 2);
+      position.x = position.x.clamp(size.x / 2 + 12.0, kGameWidth - size.x / 2 - 12.0);
     }
 
     if (_flashWhite) {
@@ -214,7 +241,9 @@ class BomberEnemy extends Enemy {
   @override
   void render(Canvas canvas) {
     canvas.save();
-    canvas.rotate(game.isHorizontalLevel ? -pi / 2 : pi);
+    if (!game.isHorizontalLevel) {
+      canvas.rotate(pi);
+    }
 
     // Draw drop shadow
     canvas.drawOval(
@@ -228,22 +257,14 @@ class BomberEnemy extends Enemy {
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
 
-    final Paint paint;
     if (_flashWhite) {
-      // Flash white silhouette when damaged
-      paint = Paint()..colorFilter = const ColorFilter.mode(Color(0xFFFFFFFF), BlendMode.srcIn);
+      final paint = Paint()
+        ..colorFilter = const ColorFilter.mode(Color(0xFFFFFFFF), BlendMode.srcIn);
+      _sprite.render(canvas, position: Vector2.zero(), size: size,
+          anchor: Anchor.center, overridePaint: paint);
     } else {
-      // Tint green camouflage using modulate filter to preserve shading
-      paint = Paint()..colorFilter = const ColorFilter.mode(Color(0xFF66BB66), BlendMode.modulate);
+      _sprite.render(canvas, position: Vector2.zero(), size: size, anchor: Anchor.center);
     }
-
-    _sprite.render(
-      canvas,
-      position: Vector2.zero(),
-      size: size,
-      anchor: Anchor.center,
-      overridePaint: paint,
-    );
     canvas.restore();
 
     // Upright health bar

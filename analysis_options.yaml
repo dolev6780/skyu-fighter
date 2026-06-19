@@ -26,3 +26,13 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  exclude:
+    - "design_system/**"
+    - "design_handoff_aerofighter/**"
+    - "flutter_port/**"
+    - "skyu-fighter-patch/**"
+    - "components/**"
+    - "templates/**"
+    - "ui_kits/**"
